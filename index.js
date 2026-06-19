@@ -1,6 +1,8 @@
 const express = require('express')
 const app = express()
 
+app.use(express.json())
+
 let persons = [
   {
     id: "1",
@@ -24,16 +26,18 @@ let persons = [
   }
 ]
 
-// Get all persons
+const generateId = () => {
+  return String(Math.floor(Math.random() * 1000000))
+}
+
 app.get('/api/persons', (request, response) => {
   response.json(persons)
 })
 
-// Get single person by id
 app.get('/api/persons/:id', (request, response) => {
-  const id = request.params.id
-
-  const person = persons.find(person => person.id === id)
+  const person = persons.find(
+    p => p.id === request.params.id
+  )
 
   if (person) {
     response.json(person)
@@ -42,7 +46,6 @@ app.get('/api/persons/:id', (request, response) => {
   }
 })
 
-// Delete person by id
 app.delete('/api/persons/:id', (request, response) => {
   const id = request.params.id
 
@@ -51,7 +54,20 @@ app.delete('/api/persons/:id', (request, response) => {
   response.status(204).end()
 })
 
-// Info page
+app.post('/api/persons', (request, response) => {
+  const body = request.body
+
+  const person = {
+    id: generateId(),
+    name: body.name,
+    number: body.number
+  }
+
+  persons = persons.concat(person)
+
+  response.json(person)
+})
+
 app.get('/info', (request, response) => {
   const peopleCount = persons.length
   const date = new Date()
