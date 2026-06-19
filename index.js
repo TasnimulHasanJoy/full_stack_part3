@@ -1,7 +1,17 @@
 const express = require('express')
+const morgan = require('morgan')
+
 const app = express()
 
 app.use(express.json())
+
+morgan.token('body', (req) => {
+  return JSON.stringify(req.body)
+})
+
+app.use(
+  morgan(':method :url :status :res[content-length] - :response-time ms :body')
+)
 
 let persons = [
   {
@@ -26,12 +36,12 @@ let persons = [
   }
 ]
 
-// 3.1
+// GET all persons
 app.get('/api/persons', (request, response) => {
   response.json(persons)
 })
 
-// 3.2
+// INFO
 app.get('/info', (request, response) => {
   const peopleCount = persons.length
   const date = new Date()
@@ -42,13 +52,11 @@ app.get('/info', (request, response) => {
   `)
 })
 
-// 3.3
+// GET person by id
 app.get('/api/persons/:id', (request, response) => {
   const id = request.params.id
 
-  const person = persons.find(
-    person => person.id === id
-  )
+  const person = persons.find(person => person.id === id)
 
   if (person) {
     response.json(person)
@@ -57,23 +65,21 @@ app.get('/api/persons/:id', (request, response) => {
   }
 })
 
-// 3.4
+// DELETE person
 app.delete('/api/persons/:id', (request, response) => {
   const id = request.params.id
 
-  persons = persons.filter(
-    person => person.id !== id
-  )
+  persons = persons.filter(person => person.id !== id)
 
   response.status(204).end()
 })
 
-// random id generator
+// Generate random id
 const generateId = () => {
   return String(Math.floor(Math.random() * 1000000))
 }
 
-// 3.5 + 3.6
+// POST person
 app.post('/api/persons', (request, response) => {
   const body = request.body
 
