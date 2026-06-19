@@ -26,17 +26,28 @@ let persons = [
   }
 ]
 
-const generateId = () => {
-  return String(Math.floor(Math.random() * 1000000))
-}
-
+// 3.1
 app.get('/api/persons', (request, response) => {
   response.json(persons)
 })
 
+// 3.2
+app.get('/info', (request, response) => {
+  const peopleCount = persons.length
+  const date = new Date()
+
+  response.send(`
+    <p>Phonebook has info for ${peopleCount} people</p>
+    <p>${date}</p>
+  `)
+})
+
+// 3.3
 app.get('/api/persons/:id', (request, response) => {
+  const id = request.params.id
+
   const person = persons.find(
-    p => p.id === request.params.id
+    person => person.id === id
   )
 
   if (person) {
@@ -46,16 +57,41 @@ app.get('/api/persons/:id', (request, response) => {
   }
 })
 
+// 3.4
 app.delete('/api/persons/:id', (request, response) => {
   const id = request.params.id
 
-  persons = persons.filter(person => person.id !== id)
+  persons = persons.filter(
+    person => person.id !== id
+  )
 
   response.status(204).end()
 })
 
+// random id generator
+const generateId = () => {
+  return String(Math.floor(Math.random() * 1000000))
+}
+
+// 3.5 + 3.6
 app.post('/api/persons', (request, response) => {
   const body = request.body
+
+  if (!body.name || !body.number) {
+    return response.status(400).json({
+      error: 'name or number missing'
+    })
+  }
+
+  const nameExists = persons.some(
+    person => person.name === body.name
+  )
+
+  if (nameExists) {
+    return response.status(400).json({
+      error: 'name must be unique'
+    })
+  }
 
   const person = {
     id: generateId(),
@@ -63,19 +99,9 @@ app.post('/api/persons', (request, response) => {
     number: body.number
   }
 
-  persons = persons.concat(person)
+  persons.push(person)
 
   response.json(person)
-})
-
-app.get('/info', (request, response) => {
-  const peopleCount = persons.length
-  const date = new Date()
-
-  response.send(`
-    <p>Phonebook has info for ${peopleCount} people</p>
-    <p>${date}</p>
-  `)
 })
 
 const PORT = 3001
